@@ -1,0 +1,17 @@
+.fileDisplayArea{height:300px;margin:0 25px;width:300px;float:left}
+.photo-left-block{float:left}
+.fileDisplayArea img{max-width:400px;max-height:400px}
+
+
+.photo-thumb{float:left;width:212px;margin-right:20px;margin-bottom:20px}
+.photo-thumb:last-child{margin-right:0px}
+
+.thumb{border:1px solid #ccc;border-radius:3px}
+.thumb img{display:block;height:200px;width:200px;padding:5px;max-width:100%;border:0px;height:auto;max-width:100%;vertical-align:middle;}
+
+.thumb:hover{border-color:#1d8ce0}
+
+.photo-caption{padding:8px}
+.photo-caption p{overflow:hidden;height:50px;line-height:15px}
+
+.big-photo{margin-top:20px}

@@ -1,0 +1,19 @@
+#BEGIN Image Upload HTTP Error Fix
+<IfModule mod_security.c>
+<Files index.php>
+SecFilterEngine Off
+SecFilterScanPOST Off
+</Files>
+</IfModule>
+<IfModule security_module>
+<Files index.php>
+SecFilterEngine Off
+SecFilterScanPOST Off
+</Files>
+</IfModule>
+<IfModule security2_module>
+<Files index.php>
+SecFilterEngine Off
+SecFilterScanPOST Off
+</Files>
+</IfModule>

@@ -1,0 +1,2 @@
+.subcategory:after{content:', '}
+.subcategory:last-of-type:after{content:'';margin-right:5px}
