@@ -816,4 +816,65 @@ function crop_preview ($input_file, $width, $output_file, $quality) {
 
     imagedestroy($dest);
 }
+
+
+
+// обновление кэша погодных данных
+function get_open_weather($city_id, $units, $appid) {
+
+    $json = file_get_contents('http://api.openweathermap.org/data/2.5/weather?id=' . $city_id .'&mode=json&units=' . $units . '&lang=ru&appid=' . $appid);
+
+    return $json;
+}
+
+
+// вывод погоды
+function get_weather ($id) {
+    global $row;
+    global $weather;
+
+    // смотрим кэш в БД
+    $sql_list = mysql_query ("
+        SELECT *
+        FROM `" . DB_PREFIX . "_weather`
+        WHERE `id` = '" . $id . "'
+        LIMIT 1
+    ");
+
+    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
+
+    // считаем пора ли обновлять данные в кэше
+    $newdate = mktime() - $row['date'];
+
+    // если кэш старый, обновляем его
+    if ($newdate > $row['period']) {
+
+        // забираем новые данные с сервера openweathermap.org
+        $cache = get_open_weather($row['city_id'], $row['units'], $row['appid']);
+        
+        // сохраняем в БД
+        $add_cache = mysql_query ("
+        UPDATE `" . DB_PREFIX . "_weather` SET
+            `date`  = '" . mktime() . "',
+            `cache` = '" . $cache . "'
+        WHERE `id`  = '" . $row['id'] . "'");
+
+    }
+
+
+    // считываем новые данные из БД
+    $sql_list = mysql_query ("
+        SELECT *
+        FROM `" . DB_PREFIX . "_weather`
+        WHERE `id` = '" . $id . "'
+        LIMIT 1
+    ");
+
+    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
+
+    $weather = json_decode($row['cache'], true);
+    
+    return $row;
+    return $weather;
+}
 ?>

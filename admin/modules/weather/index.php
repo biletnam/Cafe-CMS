@@ -81,9 +81,8 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
 
 
     <div class="module-menu">
-        <a class="button" href="?section=weather&amp;action=list">Просмотр</a>
+        <a class="button" href="?section=weather&amp;action=list">Города</a>
         <a class="button" href="?section=weather&amp;action=add">Добавить город</a>
-        <a class="button" href="?section=weather&amp;action=templates">Шаблоны</a>
     </div>
 
 
@@ -250,92 +249,36 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
     }
 
 
-    if ($_GET['action'] == 'templates') {
-?>
-        <form class="form-block" action="?section=empty&action=form-g" method="post">
 
-            <legend>Вертикальная формы</legend>
+    // просмотр данных выбранного города
+    if ($_GET['action'] == 'view') {
 
-            <div class="form-group-vertical">
+        get_weather ($_GET['id']);
 
-                <label class="form-label-vertical" for="text-input">Поле ввода:</label>
+        echo '<div class="module-main-block">
 
-                <div class="form-input-vertical">
+                <h1 class="bottom20">' . $row['title'] . '</h1>
 
-                    <input class="span4" type="text" id="text-input" name="login">
+                <div class="bottom20">
 
-                </div>
-
-            </div>
-
-
-            <div class="form-group-vertical">
-
-                <label class="form-label-vertical" for="password">Поле для пароля:</label>
-
-                <div class="form-input-vertical">
-
-                    <input class="span4" type="password" name="password" id="password">
+                    Координаты: широта ' . $weather['coord']['lat'] . ' долгота ' . $weather['coord']['lon'] . '<br>
+                    Небо: ' . $weather['weather'][0]['description'] . '<br>
+                    Облачность: ' . $weather['clouds']['all'] . '% <br>
+                    
+                    Температура: ' . round($weather['main']['temp'], 1) . '°C <br>
+                    Давление ' . round($weather['main']['pressure']/1.34) . ' мм. рт. ст. <br>
+                    Влажность: ' . $weather['main']['humidity'] . '% <br>
+                    
+                    Скорость ветра: ' . $weather['wind']['speed'] . ' м/сек <br>
 
                 </div>
 
-            </div>
-
-
-            <div class="form-group-vertical">
-
-                <label class="form-label-vertical" for="select">Выпадающий список:</label>
-
-                <div class="form-input-vertical">
-
-                    <select size="1" name="status" id="select">
-
-                        <option "selected" value="0">Первый</option>
-                        <option value="1">Второй</option>
-                        <option value="2">Третий</option>
-                        <option value="3">Четвертый</option>
-
-                    </select>
-
+                <div>
+                    <a class="dashed" href="?section=weather&amp;action=delete&amp;id=' . $row['id'] . '">удалить</a> 
+                    <a class="dashed" href="?section=weather&amp;action=edit&amp;id=' . $row['id'] . '">изменить</a>
                 </div>
+            </div>';
 
-            </div>
-
-
-            <div class="form-group-vertical">
-
-                <label class="form-label-vertical" for="textarea">Область ввода:</label>
-
-                <div class="form-input-vertical">
-
-                    <textarea class="span4" name="text" rows="4" id="textarea"></textarea>
-
-                </div>
-            </div>
-
-
-            <div class="form-group-vertical">
-
-                <div class="form-input-vertical radio">
-
-                    <label><input type="radio" name="radio" value="radio"> Переключатель</label>
-                    <label><input type="checkbox" name="checkbox" value="checkbox"> Флажок</label>
-
-                </div>
-
-            </div>
-
-
-            <div class="form-group-vertical">
-
-                <div class="form-input-vertical">
-
-                    <input class="button" type="submit" name="button" value="Кнопка">
-
-                </div>
-            </div>
-        </form>
-<?php
     }
 
     if ($_GET['action'] == 'list') {
@@ -351,75 +294,75 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
             echo '<p style="margin-right:20px">Не добавлено ни одного города. <a href="/admin/index.php?section=weather&amp;action=add">
             Добавить?</a></p>';
 
-        } else {
+    } else {
     ?>
 
 
 
-            <div class="module-main-block">
+        <div class="module-main-block">
 
-                <table class="module-main-block bottom20">
+            <table class="module-main-block bottom20">
 
-                    <thead>
+                <thead>
 
-                        <tr>
-
-                            <th>#</th>
-                            <th>Город</th>
-                            <th>Обновлено</th>
-                            <th>Период</th>
-                            <th>Действия</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-
-                    <?php
-                    foreach ($sql_array as $row) {
-
-                    if ($row['date']=="0") {$row['date'] = 'Не обновлялось';}
-
-                    echo '
                     <tr>
 
-                        <td>' . $row['id'] . '</a></td>
+                        <th>#</th>
+                        <th>Город</th>
+                        <th>Обновлено</th>
+                        <th>Период</th>
+                        <th>Действия</th>
 
-                        <td><a href="?section=weather&amp;action=view&amp;id=' . $row['id'] . '">' . $row['title'] . '</a></td>
+                    </tr>
 
-                        <td>' . $row['date'] . '</td>
+                </thead>
 
-                        <td>' . $row['period']/60/60 . ' час.</td>
-
-                        <td>
-
-                            <a class="dashed" href="?section=weather&amp;action=delete&amp;id=' . $row['id'] . '">удалить</a>
-                            <a class="dashed" href="?section=weather&amp;action=edit&amp;id=' . $row['id'] . '">изменить</a>
-
-                        </td>
-
-                    </tr>';
-                    }
-                }
+                <tbody>
 
 
-            echo '
+                <?php
+                foreach ($sql_array as $row) {
 
-                    </tbody>
+                if ($row['date']=="0") {$row['date'] = 'Не обновлялось';}
 
-                </table>
-
-                <div class="pagination">
-
-                    <ul>';
-                        pager (ceil ($total_count) / $limit, '/admin/index.php?section=pages&action=list');
                 echo '
-                    </ul>
+                <tr>
 
-                </div>
-            </div>';
+                    <td>' . $row['id'] . '</a></td>
+
+                    <td><a href="?section=weather&amp;action=view&amp;id=' . $row['id'] . '">' . $row['title'] . '</a></td>
+
+                    <td>' . $row['date'] . '</td>
+
+                    <td>' . $row['period']/60/60 . ' час.</td>
+
+                    <td>
+
+                        <a class="dashed" href="?section=weather&amp;action=delete&amp;id=' . $row['id'] . '">удалить</a>
+                        <a class="dashed" href="?section=weather&amp;action=edit&amp;id=' . $row['id'] . '">изменить</a>
+
+                    </td>
+
+                </tr>';
+                }
+            }
+
+
+        echo '
+
+                </tbody>
+
+            </table>
+
+            <div class="pagination">
+
+                <ul>';
+                    pager (ceil ($total_count) / $limit, '/admin/index.php?section=pages&action=list');
+            echo '
+                </ul>
+
+            </div>
+        </div>';
 
     }
 ?>
