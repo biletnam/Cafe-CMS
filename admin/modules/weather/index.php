@@ -104,7 +104,7 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
             if ($_GET['action'] == 'edit') {
 
                 $sql_list = mysql_query ("
-                    SELECT `id`, `appid`, `title`, `city_id`, `period`, `units`, `template`
+                    SELECT `id`, `appid`, `title`, `city_id`, `period`, `units`
                     FROM `" . DB_PREFIX . "_weather`
                     WHERE `id` = '" . $_GET['id'] . "'
                     LIMIT 1
@@ -191,26 +191,6 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
                         <option <?php if ($row['period'] == '86400') {echo "selected";}?> value="86400">Каждые 24 часа</option>
 
                     </select>
-
-                </div>
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label class="form-label" for="template">Шаблон:</label>
-
-                <div class="form-input span3">
-
-                    <input class="span1" type="text" id="template" name="template"
-
-                    <?php
-                    if (isset ($row['template'])) {
-
-                        echo ' value="' . $row['template'] . '"';
-                    }
-                    ?>>
 
                 </div>
 
