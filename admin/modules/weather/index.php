@@ -20,15 +20,13 @@ if ($_POST['add']) {
         `period`,
         `units`,
         `title`,
-        `city_id`,
-        `template`)
+        `city_id`)
     VALUES (    
         '" . $_POST['appid'] . "',
         '" . $_POST['period'] . "',
         '" . $_POST['units'] . "',
         '" . $_POST['title'] . "',
-        '" . $_POST['city-id'] . "',
-        '" . $_POST['template'] . "'
+        '" . $_POST['city-id'] . "'
     )";
 
 
@@ -53,8 +51,7 @@ if ($_POST['update']) {
         `period`    = '" . $_POST['period'] . "',
         `units`     = '" . $_POST['units'] . "',
         `title`     = '" . $_POST['title'] . "',
-        `city_id`   = '" . $_POST['city-id'] . "',
-        `template`  = '" . $_POST['template'] . "'
+        `city_id`   = '" . $_POST['city-id'] . "'
     WHERE `id`      = '" . $_POST['id'] . "'";
 
 
