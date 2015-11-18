@@ -67,6 +67,11 @@ if ($_POST['update']) {
         $error = 'Возникла ошибка при обновлении настроек города';
     }
 }
+
+
+
+// удаление города
+if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
 ?>
 
 
