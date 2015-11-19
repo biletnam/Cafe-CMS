@@ -305,11 +305,11 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
                 echo '
                 <tr>
 
-                    <td>' . $row['id'] . '</a></td>
+                    <td>' . $row['id'] . '</td>
 
                     <td><a href="?section=weather&amp;action=view&amp;id=' . $row['id'] . '">' . $row['title'] . '</a></td>
 
-                    <td>' . $row['date'] . '</td>
+                    <td>' . date ("H:i d.m.Y", $row['date']) . '</td>
 
                     <td>' . $row['period']/60/60 . ' час.</td>
 
@@ -334,7 +334,7 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
             <div class="pagination">
 
                 <ul>';
-                    pager (ceil ($total_count) / $limit, '/admin/index.php?section=pages&action=list');
+                    pager (ceil ($total_count) / $limit, '/admin/index.php?section=weather&action=list');
             echo '
                 </ul>
 

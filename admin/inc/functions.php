@@ -828,6 +828,7 @@ function get_open_weather($city_id, $units, $appid) {
 }
 
 
+
 // вывод погоды
 function get_weather ($id) {
     global $row;
@@ -876,5 +877,70 @@ function get_weather ($id) {
     
     return $row;
     return $weather;
+}
+
+
+
+
+// обновление расписания
+function get_yandex_raspisanie($from_id, $to_id, $appid, $type) {
+
+    $json = file_get_contents('https://api.rasp.yandex.net/v1.0/search/?apikey=' . $appid . '&format=json&from=' . $from_id . '&to=' . $to_id . '&lang=ru&page=1&transport_types=' . $type . '');
+
+    return $json;
+}
+
+
+
+// расписания
+function get_raspisanie ($id) {
+    global $row;
+    global $raspisanie;
+
+    // смотрим кэш в БД
+    $sql_list = mysql_query ("
+        SELECT *
+        FROM `" . DB_PREFIX . "_raspisanie`
+        WHERE `id` = '" . $id . "'
+        LIMIT 1
+    ");
+
+    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
+
+    // считаем пора ли обновлять данные в кэше
+    $newdate = mktime() - $row['date'];
+
+    // если кэш старый, обновляем его
+    if ($newdate > $row['period']) {
+
+        // забираем новые данные с сервера яндекса
+        $cache = get_yandex_raspisanie($row['from_id'], $row['to_id'], $row['appid'], $row['type']);
+
+        $cache = clear_input ($cache);
+
+        // сохраняем в БД
+        $add_cache = mysql_query ("
+        UPDATE `" . DB_PREFIX . "_raspisanie` SET
+            `date`  = '" . mktime() . "',
+            `cache` = '" . $cache . "'
+        WHERE `id`  = '" . $row['id'] . "'");
+    }
+
+
+    // считываем новые данные из БД
+    $sql_list = mysql_query ("
+        SELECT *
+        FROM `" . DB_PREFIX . "_raspisanie`
+        WHERE `id` = '" . $id . "'
+        LIMIT 1
+    ");
+
+    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
+
+    $raspisanie = json_decode($row['cache'], true);
+
+    
+    return $row;
+    return $raspisanie;
 }
 ?>

@@ -67,6 +67,13 @@ include 'inc/header.php';
 
         <li>
 
+            <a href="?section=raspisanie&amp;action=list">Расписания</a>
+            <?php if ($_GET['section']=="raspisanie") echo "<span></span>";?>
+
+        </li>
+
+        <li>
+
             <a href="?section=stats&amp;action=list">Статистика</a>
             <?php if ($_GET['section']=="stats") echo "<span></span>";?>
 
