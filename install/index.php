@@ -228,6 +228,19 @@ define ("LOG_LEVEL",   "0"); // уровень детализации журна
         ) ENGINE     = MyISAM       CHARACTER SET  utf8 COLLATE utf8_general_ci;";
 
 
+        $creat_table_raspisanie = "CREATE TABLE IF NOT EXISTS `" . $db_name . "`.`" . $db_prefix . "_raspisanie` (
+            `id`       INT(2)       AUTO_INCREMENT PRIMARY KEY,
+            `appid`    VARCHAR(48)  CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `title`    VARCHAR(96)  CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `period`   INT(10),
+            `date`     INT(10),
+            `type`     VARCHAR(24) CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `from_id`  VARCHAR(16) CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `to_id`    VARCHAR(16) CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `cache`    MEDIUMTEXT CHARACTER SET  utf8 COLLATE utf8_general_ci
+        ) ENGINE     = MyISAM       CHARACTER SET  utf8 COLLATE utf8_general_ci;";
+
+
 
         // шифруем пароль администратора
         $adm_password = md5 ($adm_password);
@@ -253,6 +266,7 @@ define ("LOG_LEVEL",   "0"); // уровень детализации журна
             @mysql_query ($creat_table_stats) &&
             @mysql_query ($creat_table_users) &&
             @mysql_query ($creat_table_weather) &&
+            @mysql_query ($creat_table_raspisanie) &&
             @mysql_query ($add_admin))) {
 
             $install = 'ok';

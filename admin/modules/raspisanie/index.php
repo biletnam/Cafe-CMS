@@ -22,7 +22,7 @@ if ($_POST['add']) {
         `from_id`,
         `to_id`,
         `type`)
-    VALUES (    
+    VALUES (
         '" . $_POST['appid'] . "',
         '" . $_POST['title'] . "',
         '" . $_POST['period'] . "',
@@ -48,6 +48,7 @@ if ($_POST['update']) {
 
     clear_html ($_POST, array ());
 
+    // время последнего обновления кэша обнуляется `date` = '0'
     $update_city = "UPDATE `" . DB_PREFIX . "_raspisanie` SET
         `appid`   = '" . $_POST['appid'] . "',
         `title`   = '" . $_POST['title'] . "',
@@ -205,13 +206,13 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
 
                     <select style="width:100%" size="1" name="type" id="type">
 
-                        <option <?php if ($row['type'] == 'suburban') {echo "selected";}?> value="suburban">электричка</option>
-                        <option <?php if ($row['type'] == 'train') {echo "selected";}?> value="train">поезд</option>
-                        <option <?php if ($row['type'] == 'bus') {echo "selected";}?> value="bus">автобус</option>
-                        <option <?php if ($row['type'] == 'plane') {echo "selected";}?> value="plane">самолет</option>
+                        <option <?php if ($row['type'] == 'suburban')   {echo "selected";}?> value="suburban">электричка</option>
+                        <option <?php if ($row['type'] == 'train')      {echo "selected";}?> value="train">поезд</option>
+                        <option <?php if ($row['type'] == 'bus')        {echo "selected";}?> value="bus">автобус</option>
+                        <option <?php if ($row['type'] == 'plane')      {echo "selected";}?> value="plane">самолет</option>
                         <option <?php if ($row['type'] == 'helicopter') {echo "selected";}?> value="helicopter">вертолет</option>
-                        <option <?php if ($row['type'] == 'sea') {echo "selected";}?> value="plane">морской транспорт</option>
-                        <option <?php if ($row['type'] == 'river') {echo "selected";}?> value="plane">речной транспорт</option>
+                        <option <?php if ($row['type'] == 'sea')        {echo "selected";}?> value="plane">морской транспорт</option>
+                        <option <?php if ($row['type'] == 'river')      {echo "selected";}?> value="plane">речной транспорт</option>
 
                     </select>
 
@@ -246,6 +247,7 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
 
                     <?php
                     ($_GET['action'] == 'edit') ? $name="update" : $name="add";
+
                     echo '<input class="button" type="submit" name="' . $name . '" value="Сохранить">';
                     ?>
 
@@ -254,24 +256,22 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
             </div>
 
         </form>
-<?php        
+<?php
     }
 
 
 
     // просмотр данных выбранного маршрута
     if ($_GET['action'] == 'view') {
-    
-    
+
+
         get_raspisanie ($_GET['id']);
-$raspisanieData = $raspisanie;
 
+        echo '
 
-        echo '<div class="module-main-block">
+            <table class="bottom20">
 
-            <table class="module-main-block bottom20">
-
-                <caption>' . $row['title'] . ' (' . $row['type'] . ')</caption>
+                <caption class="bottom20"><h2>' . $row['title'] . '</h2></caption>
                 <thead>
 
                     <tr>
@@ -289,23 +289,21 @@ $raspisanieData = $raspisanie;
                 <tbody>';
 
 
-    for ($i=0; $i<$raspisanieData['pagination']['total']; $i++){
+    for ($i=0; $i<$raspisanie['pagination']['total']; $i++){
 		echo "
 <tr>
-	    <td>" . $raspisanieData['threads'][$i]['thread']['short_title'] . "</td>
-		<td>" . substr($raspisanieData['threads'][$i]['departure'], 0, 5) . "</td>
-		<td>" . substr($raspisanieData['threads'][$i]['arrival'], 0, 5) ."</td>
-		<td>" . $raspisanieData['threads'][$i]['days'] . "</td>
-		<td>" . $raspisanieData['threads'][$i]['stops'] . "</td>
+	    <td>" . $raspisanie['threads'][$i]['thread']['short_title'] . "</td>
+		<td>" . substr($raspisanie['threads'][$i]['departure'], 0, 5) . "</td>
+		<td>" . substr($raspisanie['threads'][$i]['arrival'], 0, 5) ."</td>
+		<td>" . $raspisanie['threads'][$i]['days'] . "</td>
+		<td>" . $raspisanie['threads'][$i]['stops'] . "</td>
 	</tr>";
 	}
 echo '
 
                 </tbody>
 
-            </table>
-        </div>';
-
+            </table>';
     }
 
     if ($_GET['action'] == 'list') {
@@ -326,9 +324,7 @@ echo '
 
 
 
-        <div class="module-main-block">
-
-            <table class="module-main-block bottom20">
+            <table class="bottom20">
 
                 <thead>
 
@@ -386,9 +382,7 @@ echo '
             echo '
                 </ul>
 
-            </div>
-        </div>';
-
+            </div>';
     }
 ?>
 

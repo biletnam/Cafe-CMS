@@ -831,6 +831,7 @@ function get_open_weather($city_id, $units, $appid) {
 
 // вывод погоды
 function get_weather ($id) {
+
     global $row;
     global $weather;
 
@@ -852,7 +853,7 @@ function get_weather ($id) {
 
         // забираем новые данные с сервера openweathermap.org
         $cache = get_open_weather($row['city_id'], $row['units'], $row['appid']);
-        
+
         // сохраняем в БД
         $add_cache = mysql_query ("
         UPDATE `" . DB_PREFIX . "_weather` SET
@@ -874,7 +875,7 @@ function get_weather ($id) {
     $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
 
     $weather = json_decode($row['cache'], true);
-    
+
     return $row;
     return $weather;
 }
@@ -894,6 +895,7 @@ function get_yandex_raspisanie($from_id, $to_id, $appid, $type) {
 
 // расписания
 function get_raspisanie ($id) {
+
     global $row;
     global $raspisanie;
 
@@ -939,7 +941,7 @@ function get_raspisanie ($id) {
 
     $raspisanie = json_decode($row['cache'], true);
 
-    
+
     return $row;
     return $raspisanie;
 }

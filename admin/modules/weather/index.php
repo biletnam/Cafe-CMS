@@ -21,7 +21,7 @@ if ($_POST['add']) {
         `units`,
         `title`,
         `city_id`)
-    VALUES (    
+    VALUES (
         '" . $_POST['appid'] . "',
         '" . $_POST['period'] . "',
         '" . $_POST['units'] . "',
@@ -222,7 +222,7 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
             </div>
 
         </form>
-<?php        
+<?php
     }
 
 
@@ -241,17 +241,17 @@ if ($_GET['action'] == 'delete' && empty ($error)) terminator ();
                     Координаты: широта ' . $weather['coord']['lat'] . ' долгота ' . $weather['coord']['lon'] . '<br>
                     Небо: ' . $weather['weather'][0]['description'] . '<br>
                     Облачность: ' . $weather['clouds']['all'] . '% <br>
-                    
+
                     Температура: ' . round($weather['main']['temp'], 1) . '°C <br>
                     Давление ' . round($weather['main']['pressure']/1.34) . ' мм. рт. ст. <br>
                     Влажность: ' . $weather['main']['humidity'] . '% <br>
-                    
+
                     Скорость ветра: ' . $weather['wind']['speed'] . ' м/сек <br>
 
                 </div>
 
                 <div>
-                    <a class="dashed" href="?section=weather&amp;action=delete&amp;id=' . $row['id'] . '">удалить</a> 
+                    <a class="dashed" href="?section=weather&amp;action=delete&amp;id=' . $row['id'] . '">удалить</a>
                     <a class="dashed" href="?section=weather&amp;action=edit&amp;id=' . $row['id'] . '">изменить</a>
                 </div>
             </div>';
