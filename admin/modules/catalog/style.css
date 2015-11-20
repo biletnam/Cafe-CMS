@@ -1,0 +1,4 @@
+.fileDisplayArea img{max-width:300px;max-height:400px;border:1px solid green}
+.cross-control{background:url(center.gif) no-repeat;position:absolute;width:16px;height:16px;}
+.mapbox{width:300px;height:250px;border:1px solid #ccc;border-radius:3px}
+.file-select{cursor:pointer;position:absolute;font-size:24px;right:0;opacity:0;-moz-opacity:0;filter:alpha(opacity=0)}
