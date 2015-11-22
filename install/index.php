@@ -31,7 +31,7 @@
 include $_SERVER['DOCUMENT_ROOT'] . '/admin/inc/functions.php';
 
 
-define (VERSION, "0.6.0"); // текущая версия CMS
+define (VERSION, "0.6.4"); // текущая версия CMS
 
 
 // если файл настроек существует - прерываем установку CMS
@@ -241,6 +241,45 @@ define ("LOG_LEVEL",   "0"); // уровень детализации журна
         ) ENGINE     = MyISAM       CHARACTER SET  utf8 COLLATE utf8_general_ci;";
 
 
+        $creat_table_catalog = "CREATE TABLE IF NOT EXISTS `" . $db_name . "`.`" . $db_prefix . "_catalog` (
+            `id`            INT(5)          AUTO_INCREMENT PRIMARY KEY,
+            `title`         VARCHAR(256)    CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `url`           VARCHAR(64)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `form`          VARCHAR(5)      CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `type`          INT(2),
+            `category`      INT(2),
+            `boss`          VARCHAR(128)    CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `description`   MEDIUMTEXT      CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `file`          VARCHAR(128)    CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `phone`         VARCHAR(24)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `phone2`        VARCHAR(24)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `fax`           VARCHAR(24)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `email`         VARCHAR(24)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `www`           VARCHAR(64)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `city`          VARCHAR(64)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `street`        VARCHAR(64)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `build`         VARCHAR(64)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `lat`           DECIMAL(9,6),
+            `lon`           DECIMAL(9,6)
+        ) ENGINE          = MyISAM          CHARACTER SET  utf8 COLLATE utf8_general_ci;";	 	 	 	 	
+
+
+        $creat_table_catalog_categories = "CREATE TABLE IF NOT EXISTS `" . $db_name . "`.`" . $db_prefix . "_catalog_categories` (
+            `id`       INT(3)        AUTO_INCREMENT PRIMARY KEY,
+            `title`    VARCHAR(40)   CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `url`      VARCHAR(60)   CHARACTER SET  utf8 COLLATE utf8_general_ci
+        ) ENGINE     = MyISAM        CHARACTER SET  utf8 COLLATE utf8_general_ci;";
+
+
+        $creat_table_catalog_subcategories = "CREATE TABLE IF NOT EXISTS `" . $db_name . "`.`" . $db_prefix . "_catalog_subcategories` (
+            `id`       INT(3)        AUTO_INCREMENT PRIMARY KEY,
+            `pid`      INT(3),
+            `title`    VARCHAR(60)   CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `url`      VARCHAR(60)   CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `position` INT(3)
+        ) ENGINE     = MyISAM        CHARACTER SET  utf8 COLLATE utf8_general_ci;";
+
+
 
         // шифруем пароль администратора
         $adm_password = md5 ($adm_password);
@@ -267,6 +306,9 @@ define ("LOG_LEVEL",   "0"); // уровень детализации журна
             @mysql_query ($creat_table_users) &&
             @mysql_query ($creat_table_weather) &&
             @mysql_query ($creat_table_raspisanie) &&
+            @mysql_query ($creat_table_catalog) &&
+            @mysql_query ($creat_table_catalog_categories) &&
+            @mysql_query ($creat_table_catalog_subcategories) &&
             @mysql_query ($add_admin))) {
 
             $install = 'ok';

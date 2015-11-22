@@ -29,6 +29,5 @@ function GeolocationButton(params, options) {
 
 ymaps.ready(function () {
     ymaps.util.augment(GeolocationButton, ymaps.control.Button, {
-        
     });
 });
