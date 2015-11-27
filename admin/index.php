@@ -81,6 +81,13 @@ include 'inc/header.php';
 
         <li>
 
+            <a href="?section=currency&amp;action=list">Курсы валют</a>
+            <?php if ($_GET['section']=="currency") echo "<span></span>";?>
+
+        </li>
+
+        <li>
+
             <a href="?section=stats&amp;action=list">Статистика</a>
             <?php if ($_GET['section']=="stats") echo "<span></span>";?>
 

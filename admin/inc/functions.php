@@ -945,4 +945,95 @@ function get_raspisanie ($id) {
     return $row;
     return $raspisanie;
 }
+
+
+
+function get_currency ($id) {
+
+    // смотрим кэш в БД
+    $sql_list = mysql_query ("
+        SELECT *
+        FROM `" . DB_PREFIX . "_currency`
+        WHERE `id` = '" . $id . "'
+        LIMIT 1
+    ");
+
+    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
+
+    // считаем пора ли обновлять данные в кэше
+    $newdate = mktime() - $row['date'];
+
+    // если кэш старый, обновляем его
+    if ($newdate > $row['period']) {
+
+        $url = 'http://www.cbr.ru/scripts/XML_dynamic.asp';
+
+        # Начальная дата для запроса  (сегодня - 2 дня)
+        $date_1=date('d/m/Y', time()-272800);
+
+        # Конечная дата включая завтрашний день
+        $date_2=date('d/m/Y', time()+86400);
+
+        # URL для запроса данных
+        $requrl = "{$url}?date_req1={$date_1}&date_req2={$date_2}&VAL_NM_RQ={$row['currency']}";
+
+        $doc = file($requrl);
+        $doc = implode($doc, '');
+
+        # инициализируем массив
+        $r = array();
+
+        # ищем <ValCurs>...</ValCurs>
+        if(preg_match("/<ValCurs.*?>(.*?)<\/ValCurs>/is", $doc, $m))
+
+        # а потом ищем все вхождения <Record>...</Record>
+        preg_match_all("/<Record(.*?)>(.*?)<\/Record>/is", $m[1], $r, PREG_SET_ORDER);
+
+        $m = array();	# его уже использовали, реинициализируем
+        $d = array();	# этот тоже проинициализируем
+
+        # Сканируем на предмет самых нужных цифр
+        for($i=0; $i<count($r); $i++) {
+
+            if(preg_match("/Date=\"(\d{2})\.(\d{2})\.(\d{4})\"/is", $r[$i][1],$m)) {
+
+		        $dv = mktime (0,0,0,$m[2],$m[1],$m[3]);
+
+		        if(preg_match("/<Nominal>(.*?)<\/Nominal>.*?<Value>(.*?)<\/Value>/is", $r[$i][2], $m)) {
+
+			        $m[2] = preg_replace("/,/",".",$m[2]);
+			        $d[] = array($dv, $m[1], $m[2]);
+		        }
+	        }
+        }
+
+        $last = array_pop($d);				# последний известный день
+        $prev = array_pop($d);				# предпосл. известный день
+        $date = $last[0];   				# отображаемая дата
+        $nominal = $last[1];
+        $rate = sprintf("%.2f",$last[2]);	# отображаемый курс
+
+
+        // сохраняем в БД
+        $add_cache = mysql_query("UPDATE `" . DB_PREFIX . "_currency` SET
+            `cur_date`  = '" . $date . "',
+            `nominal` = '" . $nominal . "',
+            `rate` = '" . $rate . "'
+        WHERE `id`  = '" . $id . "'");
+
+    }
+
+
+    // считываем новые данные из БД
+    $sql_list = mysql_query ("
+        SELECT *
+        FROM `" . DB_PREFIX . "_currency`
+        WHERE `code` = '" . $currency_code . "'
+        LIMIT 1
+    ");
+
+    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
+
+    return $row;
+}
 ?>

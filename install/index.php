@@ -31,7 +31,7 @@
 include $_SERVER['DOCUMENT_ROOT'] . '/admin/inc/functions.php';
 
 
-define (VERSION, "0.6.4"); // текущая версия CMS
+define (VERSION, "0.6.5"); // текущая версия CMS
 
 
 // если файл настроек существует - прерываем установку CMS
@@ -261,7 +261,7 @@ define ("LOG_LEVEL",   "0"); // уровень детализации журна
             `build`         VARCHAR(64)     CHARACTER SET  utf8 COLLATE utf8_general_ci,
             `lat`           DECIMAL(9,6),
             `lon`           DECIMAL(9,6)
-        ) ENGINE          = MyISAM          CHARACTER SET  utf8 COLLATE utf8_general_ci;";	 	 	 	 	
+        ) ENGINE          = MyISAM          CHARACTER SET  utf8 COLLATE utf8_general_ci;";
 
 
         $creat_table_catalog_categories = "CREATE TABLE IF NOT EXISTS `" . $db_name . "`.`" . $db_prefix . "_catalog_categories` (
@@ -278,6 +278,19 @@ define ("LOG_LEVEL",   "0"); // уровень детализации журна
             `url`      VARCHAR(60)   CHARACTER SET  utf8 COLLATE utf8_general_ci,
             `position` INT(3)
         ) ENGINE     = MyISAM        CHARACTER SET  utf8 COLLATE utf8_general_ci;";
+
+
+        $creat_table_currency = "CREATE TABLE IF NOT EXISTS `" . $db_name . "`.`" . $db_prefix . "_currency` (
+            `id`        INT(2)      AUTO_INCREMENT PRIMARY KEY,
+            `title`     VARCHAR(32) CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `code`      VARCHAR(3)  CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `currency`  VARCHAR(6)  CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `period`    INT(5),
+            `date`      INT(10),
+            `cur_date`  INT(10),
+            `nominal`   VARCHAR(5)  CHARACTER SET  utf8 COLLATE utf8_general_ci,
+            `rate`      VARCHAR(8)  CHARACTER SET  utf8 COLLATE utf8_general_ci
+        ) ENGINE      = MyISAM      CHARACTER SET  utf8 COLLATE utf8_general_ci;";
 
 
 
@@ -309,13 +322,14 @@ define ("LOG_LEVEL",   "0"); // уровень детализации журна
             @mysql_query ($creat_table_catalog) &&
             @mysql_query ($creat_table_catalog_categories) &&
             @mysql_query ($creat_table_catalog_subcategories) &&
+            @mysql_query ($creat_table_currency) &&
             @mysql_query ($add_admin))) {
 
             $install = 'ok';
 
         } else {
 
-            $error .= 'Произошла ошибка при добавление таблиц в&nbsp;базу&nbsp;данных.';;
+            $error .= 'Произошла ошибка при добавление таблиц в&nbsp;базу&nbsp;данных.';
 
             if (file_exists ($_SERVER['DOCUMENT_ROOT'] . '/config.php')) {
 
