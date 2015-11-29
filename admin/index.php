@@ -1,9 +1,12 @@
 <?php
 include 'inc/functions.php';
+include 'inc/mysql.class.php';
 
 
-check_install ();   // проверяем, установлена ли cms
-db_connect ();      // подключаемся к БД
+check_install(); // проверяем, установлена ли cms
+
+
+$db = new SafeMySQL(array('user' => DB_LOGIN, 'pass' => DB_PASSWORD, 'db' => DB_NAME, 'charset' => 'utf8'));
 
 
 define ("CAFE", '1');
