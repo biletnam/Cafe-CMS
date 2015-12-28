@@ -4,53 +4,38 @@ defined('CAFE') or die (header ('Location: /'));
 
 session_start ();         // стартуем сессию
 
-
 $_SESSION['status'] = ''; // сбрасываем статус пользователя
-
 
 
 // если в сессии есть логин и пароль, проверяем его соответствие в БД
 if (isset ($_SESSION['login']) && isset ($_SESSION['pass']) && empty ($_GET['exit'])) {
 
+    $login = $_SESSION['login'];
+    $pass  = $_SESSION['pass'];
 
-    // чистим полученные данные и сверяем соответствие логина и пароля в базе
-    $login = clear_input (htmlspecialchars ($_SESSION['login']));
-
-    $pass  = clear_input (htmlspecialchars ($_SESSION['pass']));
-
-    $auth  = mysql_query ("
-
-        SELECT id, login, password, status
-        FROM `" . DB_PREFIX . "_users`
-        WHERE `login` = '" . $login . "' AND `password` = '" . $pass . "'
-        LIMIT 1
-    ");
+    $user = $db->getRow('SELECT id, login, password, status FROM `' . DB_PREFIX . '_users` WHERE login=?s AND password=?s', $login, $pass);
 
 
     // если логин-пароль есть в базе, активируем сессию для пользователя
-    if (mysql_num_rows ($auth) > 0) {
-
-        $userinfo = mysql_fetch_array ($auth);
+    if ($user) {
 
         // если это админ или модератор, определяем переменные сессии
-        if ($userinfo['status'] == '1' || $userinfo['status'] == '2') {
+        if ($user['status'] == '1' || $user['status'] == '2') {
 
-            $_SESSION['id']     = $userinfo['id'];
-            $_SESSION['login']  = $userinfo['login'];
-            $_SESSION['pass']   = $userinfo['password'];
-            $_SESSION['status'] = $userinfo['status'];
+            $_SESSION['id']     = $user['id'];
+            $_SESSION['login']  = $user['login'];
+            $_SESSION['pass']   = $user['password'];
+            $_SESSION['status'] = $user['status'];
 
         } else {
 
-            $error  =  'Доступ запрещен!';
+            $error  =  'Доступ запрещен!@';
             session_destroy();
-
         }
 
     } else {
 
         session_destroy();
-
     }
 }
 
@@ -68,49 +53,39 @@ if (isset ($_POST['auth'])) {
 
     } else {
 
-        // чистим полученные данные и сверяем соответствие логина и пароля в базе
-        $login = clear_input (htmlspecialchars ($_POST['login']));
-        $pass  = clear_input (htmlspecialchars ($_POST['pass']));
+        $login = $_POST['login'];
+        $pass  = md5($_POST['pass']);
 
-        $auth = mysql_query ("
-            SELECT id, login, password, status
-            FROM `" . DB_PREFIX . "_users`
-            WHERE `login` = '" . $login . "' AND `password` = '" . md5($pass) . "'
-            LIMIT 1
-        ");
-
+        $user = $db->getRow('SELECT id, login, password, status FROM `' . DB_PREFIX . '_users` WHERE login=?s AND password=?s', $login, $pass);
 
         // если логин-пароль есть в базе, активируем сессию для пользователя
-        if (mysql_num_rows ($auth) > 0) {
-
-            $userinfo = mysql_fetch_array ($auth);
+        if ($user) {
 
             // если это админ или модератор, определяем переменные сессии
-            if ($userinfo['status'] == '1' || $userinfo['status'] == '2') {
+            if ($user['status'] == '1' || $user['status'] == '2') {
 
-                $_SESSION['id']     = $userinfo['id'];
-                $_SESSION['login']  = $userinfo['login'];
-                $_SESSION['pass']   = $userinfo['password'];
-                $_SESSION['status'] = $userinfo['status'];
+                $_SESSION['id']     = $user['id'];
+                $_SESSION['login']  = $user['login'];
+                $_SESSION['pass']   = $user['password'];
+                $_SESSION['status'] = $user['status'];
 
                 log_write ('Пользователь авторизовался', '1', '1');
 
             } else {
 
-                $_SESSION ['id'] = $userinfo['id'];
-                $error  =  'Доступ запрещен!';
+                $_SESSION ['id'] = $user['id'];
+                $error  =  'Доступ запрещен!!';
                 session_destroy ();
-
             }
 
         } else {
 
             $error  =  'Авторизация не удалась: такой пользователь не существует или пароль не верный.';
             session_destroy ();
-
         }
     }
 }
+
 
 // если была нажата кнопка "выход"
 if (isset ($_GET['exit'])) {
@@ -124,11 +99,9 @@ if (isset ($_GET['exit'])) {
 // если статус пользователя не администратор или не модератор
 if ($_SESSION['status'] != '1' && $_SESSION['status'] != '2') {
 
-    include $_SERVER['DOCUMENT_ROOT'] . '/admin/inc/header.php';
-?>
+    include 'header_tpl.php';
 
-
-<?php if (isset ($error)) echo print_message ($message, $error);?>
+    if (isset ($error)) echo print_message ($message, $error);?>
 
 
 <!-- форма авторизации -->

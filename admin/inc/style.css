@@ -127,17 +127,16 @@ td{padding:8px;vertical-align:top}
 
 
 /* Левое меню */
-.left-side{float:left;width:200px;position:fixed;min-height:100%;background-color:#333;padding:0px 7px 0px 17px;margin:0px}
+.left-side{float:left;width:220px;position:fixed;min-height:100%;background-color:#2b333d;padding:0px;margin:0px}
 .left-side li:first-child a{font-weight:bold}
-.left-side li{padding:10px;position:relative}
-.left-side li span:after{content:'';border-top:7px solid transparent;border-right:14px solid white;border-bottom:7px solid transparent;position:absolute;right:-7px;top:15px}
-.right-icon{float:right;padding:3px 4px}
-.left-side a{color:#ccc;text-decoration:none}
-.left-side li:first-child{background-color:#333;margin-top:10px;height:30px}
-.left-side li:hover:first-child{background-color:#333}
-.left-side li:hover{background-color:#555}
-.copyright{color:#ccc;display:block;padding:5px;position:absolute;bottom:4px}
-.copyright a{text-decoration:underline}
+.left-side li{position:relative}
+.left-side .current{color:#ffffff;background-color:#24272d}
+.right-icon{float:right;padding:3px 4px;position:absolute;top:3px;right:10px}
+.left-side li a{padding:10px 10px 10px 25px;color:#c5d0de;text-decoration:none;display:block}
+.left-side li:first-child{margin:15px 0px}
+.left-side li:hover{background-color:#24272d}
+.copyright{color:#c5d0de;display:block;padding:5px 0px 5px 25px;position:absolute;bottom:4px}
+.copyright a{color:#c5d0de;text-decoration:underline}
 
 
 
@@ -155,6 +154,12 @@ td{padding:8px;vertical-align:top}
 
 
 
-/* ОСтальное*/
+/* Оcтальное*/
 .both{clear:both}
 .bottom20{margin-bottom:20px}
+
+.debug-right{float:left;right:-1px;top:-1px;height:100%;width:2px;overflow:hidden;position:fixed;background-color:rgba(0, 0, 0, 0.020);color:#ccc;padding:0px;z-index:3}
+.debug-right:hover{width:400px;background-color:rgba(0, 0, 0, 0.900);color:#09f809;font-size:12px;line-height:12px;padding:12px}
+
+.debug-bottom{float:left;bottom:-1px;height:2px;width:100%;overflow:hidden;position:fixed;background-color:rgba(0, 0, 0, 0.020);color:#ccc;padding:0px;z-index:3}
+.debug-bottom:hover{height:400px;background-color:rgba(0, 0, 0, 0.900);color:#09f809;font-size:12px;line-height:12px;overflow:auto;padding:12px;}
