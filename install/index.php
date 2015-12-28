@@ -31,7 +31,7 @@
 include $_SERVER['DOCUMENT_ROOT'] . '/admin/inc/functions.php';
 
 
-define (VERSION, "0.6.5"); // текущая версия CMS
+define (VERSION, "0.7.0"); // текущая версия CMS
 
 
 // если файл настроек существует - прерываем установку CMS

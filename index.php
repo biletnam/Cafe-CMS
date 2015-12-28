@@ -7,17 +7,15 @@
 ###                                                                          ###
 ################################################################################
 
-include 'admin/inc/functions.php';  // подключаем файл с функциями
+include 'admin/inc/functions.php';
+include 'admin/inc/get_functions.php';
+include 'admin/inc/mysql.class.php';
 
-check_install ();               // проверяем, установлена ли CMS
+check_install(); // проверяем, установлена ли cms
 
+$db = new SafeMySQL();
 
-db_connect ();                  // подключаемся к БД
-
-
-define ("CAFE", '1');           // защита от прямого скачивания
-
-
+define ("CAFE", '1');
 
 include TEMPLATE . '/index.php';// подключаем шаблон
 ?>

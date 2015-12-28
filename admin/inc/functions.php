@@ -60,26 +60,21 @@ function print_message ($message, $error) {
  */
 function log_write ($text, $status, $level) {
 
+    $db = new SafeMySQL(array('user' => DB_LOGIN, 'pass' => DB_PASSWORD, 'db' => DB_NAME, 'charset' => 'utf8'));
+
     if ($level <= LOG_LEVEL) {
 
         if (empty ($_SESSION['id'])) $_SESSION['id'] = '0';
 
-        $add_log = "INSERT `" . DB_PREFIX . "_logs` (
-            `user`,
-            `date`,
-            `type`,
-            `status`,
-            `ip`
-        )
-        VALUES (
-            '" . $_SESSION['id'] . "',
-            '" . mktime () . "',
-            '" . $text . "',
-            '" . $status . "',
-            '" . $_SERVER['REMOTE_ADDR'] . "'
-        )";
+        $data = array(
+            'user'   => $_SESSION['id'],
+            'date'   => mktime (),
+            'type'   => $text,
+            'status' => $status,
+            'ip'     => $_SERVER['REMOTE_ADDR']);
 
-        @mysql_query ($add_log);
+        $add_log = $db->query("INSERT " . DB_PREFIX . "_logs SET ?u", $data);
+
     }
 }
 
@@ -93,20 +88,6 @@ function check_install () {
 
     (include $_SERVER['DOCUMENT_ROOT'] . '/config.php')
     or die (header ('Location: /install/index.php'));
-}
-
-
-
-/* Подключение к базе данных
- * Данные для подключения находятся в файле /config.php.
- * При ошибках подключения или выбора БД, выводятся соответствующие сообщения.
- * Если успешно подключились и выбралу нужную базу, устанавливаем кодировку utf8
- */
-function db_connect () {
-
-    @mysql_connect (DB_SERVER, DB_LOGIN , DB_PASSWORD) or die ('Не удалось подключиться к серверу БД!');
-    @mysql_select_db (DB_NAME) or die ('Невозможно открыть базу данных!');
-    @mysql_query ('SET NAMES UTF8');
 }
 
 
@@ -133,40 +114,6 @@ function clear_input ($input_data) {
         }
 
         $output_data = mysql_real_escape_string(trim($input_data));
-    }
-
-    return $output_data;
-}
-
-
-
-/* Заменяем спецсимволы на HTML сущности
- * $include_data - может иметь стрковое значение или быть массивом. Если это
- * массив, разбираем его и к каждому элементу применяем функцию еще раз.
- * $exclude_data - содержит значения, которые не нужно обрабатывать (в случае,
- * если $include_data является массивом). На выходе получим чистые данные
- * без спецсимволов
- * $output_data - очищенные данные
- */
-function clear_html ($include_data, $exclude_data) {
-
-    if (is_array ($include_data)) {
-
-        foreach  ($include_data AS $key => $value) {
-
-            $output_data[$key] = clear_html ($include_data[$key], $exclude_data);
-        }
-
-    } else {
-
-        if (!in_array ($include_data, $exclude_data)) {
-
-            $output_data = htmlspecialchars ($include_data);
-
-        } else {
-
-            $output_data = $include_data;
-        }
     }
 
     return $output_data;
@@ -244,20 +191,20 @@ function check_error () {
 
 
 // Высчитываем начальную и конечную запись для вывода на текущей странице
-function page_limit ($page_limit) {
+function page_limit ($limit) {
 
-    global $start_page;
-    global $end_page;
+    global $start;
+    global $end;
 
     if (isset ($_GET['page'])) {
 
-        $start_page = $_GET['page'] * $page_limit - $page_limit;
-        $end_page   = $page_limit;
+        $start = $_GET['page'] * $limit - $limit;
+        $end   = $limit;
 
     } else {
 
-        $start_page = '0';
-        $end_page   = $page_limit;
+        $start = '0';
+        $end   = $limit;
     }
 }
 
@@ -425,20 +372,20 @@ function timestamp ($get_date) {
 
 
 
+
 // Удаляем запись из БД
 // $section - из какого раздела/таблицы
 // $id - номер записи в бд
 function terminator () {
 
-    $id = $_GET['id'];
-
-    $delete = "DELETE FROM `" . DB_PREFIX . "_" . $_GET['section'] . "` WHERE `id` = " . $id . " LIMIT 1";
-
     if ($_SESSION['status'] == '1') { // удалять может только администратор
 
-        if (mysql_query ($delete)) {
+        $db = new SafeMySQL(array('user' => DB_LOGIN, 'pass' => DB_PASSWORD, 'db' => DB_NAME, 'charset' => 'utf8'));
+        $delete = $db->query("DELETE FROM " . DB_PREFIX . "_" . $_GET['section'] . " WHERE id=?i", $_GET['id']);
 
-            header ('Location: /admin/index.php?section=' . $_GET['section'] . '&action=list&msg=del');
+        if ($delete) {
+
+            header ('Location: /admin/index.php?section=' . $_GET['section'] . '&action=list');
 
         } else {
 
@@ -448,235 +395,6 @@ function terminator () {
     } else {
 
         print_message ('','Не достаточно прав для удаления.');
-    }
-}
-
-
-
-/* SELECT запрос в базу данных
- *
- * $row - поля для выбора,
- * $table - имя таблицы без префикса
- * $where - условия для выборки,
- * $order - поле для сортировки,
- * $limit  - сколько результатов показать,
- * $count - количество выбранных результатов
- * $pages_array - многомерный массив с данными о страницах
- */
-function make_select ($row, $table, $where, $order, $limit) {
-
-    global $sql_array;
-    global $total_count;
-    global $current_count;
-
-
-    $sql = mysql_query("SELECT $row FROM `" . DB_PREFIX . "_" . $table . "` " . $where . " " . $order . " " . $limit);
-
-    $current_count = mysql_num_rows($sql);
-
-    $total_count   = mysql_fetch_row(mysql_query("SELECT COUNT(*) FROM `" . DB_PREFIX . "_" . $table . "`"))['0'];
-
-    if ($current_count > '0') {
-
-        while ($items = mysql_fetch_array ($sql, MYSQL_ASSOC)) {
-
-            $sql_array[] = $items;
-        }
-    }
-}
-
-
-
-/* Выбранная запись
- * $post_id             - id записи,
- * $post_content_array  - массив с содержимым записи
- */
-function get_post ($post_id) {
-
-    global $post_content_array;
-
-    $post_content = mysql_query ("SELECT * FROM `" . DB_PREFIX . "_posts` WHERE `id` = '$post_id' LIMIT 1");
-
-    $post_content_array = mysql_fetch_array ($post_content, MYSQL_ASSOC);
-
-}
-
-
-/* Выбранная фотография
- * $photo_id            - id фотографии,
- * $photo_content_array  - массив с содержимым фотографии
- */
-function get_photo ($photo_id) {
-
-    global $photo_content_array;
-
-    $photo_content = mysql_query ("SELECT * FROM `" . DB_PREFIX . "_photos` WHERE `id` = '$photo_id' LIMIT 1");
-
-    $photo_content_array = mysql_fetch_array ($photo_content, MYSQL_ASSOC);
-
-}
-
-
-
-/* Выбранная страница
- * $page_id             - id страницы,
- * $page_content_array  - массив с содержимым страницы
- */
-function get_page ($page_id) {
-
-    global $page_content_array;
-
-    $page_content = mysql_query ("SELECT * FROM `" . DB_PREFIX . "_pages` WHERE `id` = '$page_id' LIMIT 1");
-
-    $page_content_array = mysql_fetch_array ($page_content, MYSQL_ASSOC);
-
-}
-
-
-
-/* Список корневых страниц (без подстраниц)
- * На входе получаем $limit - сколько страниц показать,
- * на выходе получаем многомерный массив $pages_array[].
- */
-function get_page_list ($limit) {
-
-    global $pages_array;
-
-    $page_list = mysql_query ("SELECT * FROM `" . DB_PREFIX . "_pages` WHERE position > '0' && `pid` = '0' ORDER BY `position` LIMIT $limit");
-
-    if (mysql_num_rows ($page_list) > '0') {
-
-        while ($pages = mysql_fetch_array ($page_list, MYSQL_ASSOC)) {
-
-        $pages_array[] = array (
-
-            'id' => $pages['id'],
-            'title' => $pages['title'],
-            'url'   => $pages['url']);
-        }
-    }
-}
-
-
-
-// Список подразделов сайта
-function get_subcategory_list ($category, $order) {
-
-    global $subcategory_array;
-
-    $subcategory_list = mysql_query ("SELECT * FROM `" . DB_PREFIX . "_posts_subcategories` WHERE `pid` = '$category' ORDER BY $order");
-
-    if (mysql_num_rows ($subcategory_list) > '0') {
-
-        while ($subcategory = mysql_fetch_array ($subcategory_list, MYSQL_ASSOC)) {
-
-            $subcategory_array[] = array (
-
-                'id' => $subcategory['id'],
-                'pid' => $subcategory['pid'],
-                'title' => $subcategory['title'],
-                'url'   => $subcategory['url']);
-        }
-    }
-}
-
-
-
-// Количество комментариев к записи
-function get_comment_count ($post_id) {
-
-    global $comment_count;
-
-    $comment_count = mysql_num_rows (mysql_query ("SELECT `tid` FROM `" . DB_PREFIX . "_comments` WHERE `tid` = '" . $post_id . "'"));
-
-    return $comment_count;
-}
-
-
-
-/* Список основных разделов сайта (без подразделов)
- * $order           - поле для сортировки
- * $category_array  - многомерный массив со списком разделов
- * Поля сортировки  - id, title, url.
- */
-function get_category_list ($order) {
-
-    global $category_array;
-
-    $category_list = mysql_query ("SELECT `id`, `title`, `url` FROM `" . DB_PREFIX . "_posts_categories` ORDER BY $order");
-
-    if (mysql_num_rows ($category_list) > '0') {
-
-        while ($category = mysql_fetch_array ($category_list, MYSQL_ASSOC)) {
-
-            $category_array[] = array (
-
-                'id'    => $category['id'],
-                'title' => $category['title'],
-                'url'   => $category['url']);
-        }
-    }
-}
-
-
-
-/* Список записей
- * $limit       - сколько записей выводить
- * $category    - из какого раздела, если не указано, выводятся из все разделов
- * $post_array  - многомерный массив с данными о записях
- * $start_page  - начальная запись для вывода
- * $end_page    - конечная запись для вывода
- * $post_count  - общее количество всех записей
- */
-function get_post_list ($limit, $category) {
-
-    global $post_array;
-    global $end_page;
-    global $post_count;
-
-    // если передан $_GET['page'] (номер страницы для постраничного вывода записей)
-    if (isset ($_GET['page'])) {
-
-        // определяем начальную и конечную запись для вывода
-        $start_page = $_GET['page'] * $limit - $limit;
-        $end_page   = $limit;
-
-    } else {
-
-        // если $_GET['page'] не передан, выводим $limit страниц
-        $start_page = '0';
-        $end_page   = $limit;
-    }
-
-    // определяем из каких разделов показывать записи
-    if (empty($category)) {
-
-        $sort = ''; // из всех
-
-    } else {
-
-        $sort = '&& ' . $category; // из заданного в $category
-    }
-
-    $post_list = mysql_query ("SELECT * FROM `" . DB_PREFIX . "_posts` WHERE `status` > '0' $sort ORDER BY `date` DESC LIMIT " . $start_page . ", " . $end_page . "");
-
-    // считаем общее количество записей в БД
-    $post_count = mysql_num_rows (mysql_query ("SELECT * FROM `" . DB_PREFIX . "_posts` WHERE `status` > '0' $sort ORDER BY `date` ASC "));
-
-    while ($post = mysql_fetch_array ($post_list, MYSQL_ASSOC)) {
-
-        $post_array[] = array (
-
-            'id'        => $post['id'],
-            'title'     => $post['title'],
-            'date'      => $post['date'],
-            'text'      => $post['text'],
-            'type'      => $post['type'],
-            'url'       => $post['url'],
-            'status'    => $post['status'],
-            'category'  => $post['category'],
-            'preview'   => $post['preview'],
-            'count'     => $post_count);
     }
 }
 
@@ -815,225 +533,5 @@ function crop_preview ($input_file, $width, $output_file, $quality) {
     $save = Imagejpeg($dest, $output_file, $quality); //сохраняем рисунок в формате JPEG
 
     imagedestroy($dest);
-}
-
-
-
-// обновление кэша погодных данных
-function get_open_weather($city_id, $units, $appid) {
-
-    $json = file_get_contents('http://api.openweathermap.org/data/2.5/weather?id=' . $city_id .'&mode=json&units=' . $units . '&lang=ru&appid=' . $appid);
-
-    return $json;
-}
-
-
-
-// вывод погоды
-function get_weather ($id) {
-
-    global $row;
-    global $weather;
-
-    // смотрим кэш в БД
-    $sql_list = mysql_query ("
-        SELECT *
-        FROM `" . DB_PREFIX . "_weather`
-        WHERE `id` = '" . $id . "'
-        LIMIT 1
-    ");
-
-    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
-
-    // считаем пора ли обновлять данные в кэше
-    $newdate = mktime() - $row['date'];
-
-    // если кэш старый, обновляем его
-    if ($newdate > $row['period']) {
-
-        // забираем новые данные с сервера openweathermap.org
-        $cache = get_open_weather($row['city_id'], $row['units'], $row['appid']);
-
-        // сохраняем в БД
-        $add_cache = mysql_query ("
-        UPDATE `" . DB_PREFIX . "_weather` SET
-            `date`  = '" . mktime() . "',
-            `cache` = '" . $cache . "'
-        WHERE `id`  = '" . $row['id'] . "'");
-
-    }
-
-
-    // считываем новые данные из БД
-    $sql_list = mysql_query ("
-        SELECT *
-        FROM `" . DB_PREFIX . "_weather`
-        WHERE `id` = '" . $id . "'
-        LIMIT 1
-    ");
-
-    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
-
-    $weather = json_decode($row['cache'], true);
-
-    return $row;
-    return $weather;
-}
-
-
-
-
-// обновление расписания
-function get_yandex_raspisanie($from_id, $to_id, $appid, $type) {
-
-    $json = file_get_contents('https://api.rasp.yandex.net/v1.0/search/?apikey=' . $appid . '&format=json&from=' . $from_id . '&to=' . $to_id . '&lang=ru&page=1&transport_types=' . $type . '');
-
-    return $json;
-}
-
-
-
-// расписания
-function get_raspisanie ($id) {
-
-    global $row;
-    global $raspisanie;
-
-    // смотрим кэш в БД
-    $sql_list = mysql_query ("
-        SELECT *
-        FROM `" . DB_PREFIX . "_raspisanie`
-        WHERE `id` = '" . $id . "'
-        LIMIT 1
-    ");
-
-    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
-
-    // считаем пора ли обновлять данные в кэше
-    $newdate = mktime() - $row['date'];
-
-    // если кэш старый, обновляем его
-    if ($newdate > $row['period']) {
-
-        // забираем новые данные с сервера яндекса
-        $cache = get_yandex_raspisanie($row['from_id'], $row['to_id'], $row['appid'], $row['type']);
-
-        $cache = clear_input ($cache);
-
-        // сохраняем в БД
-        $add_cache = mysql_query ("
-        UPDATE `" . DB_PREFIX . "_raspisanie` SET
-            `date`  = '" . mktime() . "',
-            `cache` = '" . $cache . "'
-        WHERE `id`  = '" . $row['id'] . "'");
-    }
-
-
-    // считываем новые данные из БД
-    $sql_list = mysql_query ("
-        SELECT *
-        FROM `" . DB_PREFIX . "_raspisanie`
-        WHERE `id` = '" . $id . "'
-        LIMIT 1
-    ");
-
-    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
-
-    $raspisanie = json_decode($row['cache'], true);
-
-
-    return $row;
-    return $raspisanie;
-}
-
-
-
-function get_currency ($id) {
-
-    // смотрим кэш в БД
-    $sql_list = mysql_query ("
-        SELECT *
-        FROM `" . DB_PREFIX . "_currency`
-        WHERE `id` = '" . $id . "'
-        LIMIT 1
-    ");
-
-    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
-
-    // считаем пора ли обновлять данные в кэше
-    $newdate = mktime() - $row['date'];
-
-    // если кэш старый, обновляем его
-    if ($newdate > $row['period']) {
-
-        $url = 'http://www.cbr.ru/scripts/XML_dynamic.asp';
-
-        # Начальная дата для запроса  (сегодня - 2 дня)
-        $date_1=date('d/m/Y', time()-272800);
-
-        # Конечная дата включая завтрашний день
-        $date_2=date('d/m/Y', time()+86400);
-
-        # URL для запроса данных
-        $requrl = "{$url}?date_req1={$date_1}&date_req2={$date_2}&VAL_NM_RQ={$row['currency']}";
-
-        $doc = file($requrl);
-        $doc = implode($doc, '');
-
-        # инициализируем массив
-        $r = array();
-
-        # ищем <ValCurs>...</ValCurs>
-        if(preg_match("/<ValCurs.*?>(.*?)<\/ValCurs>/is", $doc, $m))
-
-        # а потом ищем все вхождения <Record>...</Record>
-        preg_match_all("/<Record(.*?)>(.*?)<\/Record>/is", $m[1], $r, PREG_SET_ORDER);
-
-        $m = array();	# его уже использовали, реинициализируем
-        $d = array();	# этот тоже проинициализируем
-
-        # Сканируем на предмет самых нужных цифр
-        for($i=0; $i<count($r); $i++) {
-
-            if(preg_match("/Date=\"(\d{2})\.(\d{2})\.(\d{4})\"/is", $r[$i][1],$m)) {
-
-		        $dv = mktime (0,0,0,$m[2],$m[1],$m[3]);
-
-		        if(preg_match("/<Nominal>(.*?)<\/Nominal>.*?<Value>(.*?)<\/Value>/is", $r[$i][2], $m)) {
-
-			        $m[2] = preg_replace("/,/",".",$m[2]);
-			        $d[] = array($dv, $m[1], $m[2]);
-		        }
-	        }
-        }
-
-        $last = array_pop($d);				# последний известный день
-        $prev = array_pop($d);				# предпосл. известный день
-        $date = $last[0];   				# отображаемая дата
-        $nominal = $last[1];
-        $rate = sprintf("%.2f",$last[2]);	# отображаемый курс
-
-
-        // сохраняем в БД
-        $add_cache = mysql_query("UPDATE `" . DB_PREFIX . "_currency` SET
-            `cur_date`  = '" . $date . "',
-            `nominal` = '" . $nominal . "',
-            `rate` = '" . $rate . "'
-        WHERE `id`  = '" . $id . "'");
-
-    }
-
-
-    // считываем новые данные из БД
-    $sql_list = mysql_query ("
-        SELECT *
-        FROM `" . DB_PREFIX . "_currency`
-        WHERE `code` = '" . $currency_code . "'
-        LIMIT 1
-    ");
-
-    $row = mysql_fetch_array ($sql_list, MYSQL_ASSOC);
-
-    return $row;
 }
 ?>

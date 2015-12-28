@@ -10,30 +10,15 @@
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="stylesheet" type="text/css" href="/admin/inc/style.css">
     <link rel="stylesheet" type="text/css" href="/admin/inc/normalize.css">
-
-
-<?php
-// подключаем список стилей модуля
-if ($_GET['section'] != '') {
-?>
-
-    <link rel="stylesheet" type="text/css" href="/admin/modules/<?php echo $_GET['section']?>/style.css">
+    <link rel="stylesheet" type="text/css" href="/admin/modules/<?=$_GET['section']?>/style.css">
 
 <?php
-}
-
-
 // js-модули для редкатора подгружаем только по запросу
-if ($_GET['editor'] == '1') {
-?>
-
-    <script type="text/javascript" src="/inc/ckeditor/ckeditor.js"></script>
-    <script type="text/javascript" src="/inc/Djenx.Explorer/djenx-explorer.js"></script>
-    <script type="text/javascript" src="/inc/translit.js"></script>
-
-<?php
-}
-?>
+if ($_GET['editor'] == '1') { ?>
+    <script type="text/javascript" src="/js/ckeditor/ckeditor.js"></script>
+    <script type="text/javascript" src="/js/Djenx.Explorer/djenx-explorer.js"></script>
+    <script type="text/javascript" src="/js/translit.js"></script>
+<?php } ?>
 
 </head>
 <body>
